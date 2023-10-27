@@ -6,7 +6,7 @@ CLI: JDK version 19 (Amazon Corretto)\
 Databases: PostgresSQL in the cloud via https://aws.amazon.com/rds/
 
 ## Explanation of Project
-The goal of this project was to develop an application using a layered architecture. The application had the following requirements:
+The goal of this project was to develop an application using a microservices architecture. The application had the following requirements:
 
 - The client should be able to execute and interact with the application via a web browser and via a CLI.
 - The client should be able to create events.
