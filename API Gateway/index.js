@@ -1,5 +1,6 @@
 const { default: axios } = require('axios');
 const express = require('express')
+const cors = require('cors');
 
 const app = express()
 const port = 3001;
@@ -8,12 +9,10 @@ const port = 3001;
 // we are only sending json requests
 app.use(express.json())
 
-app.get('/api/view-events', (req, res) => {
-    // CORS policy required to have browser accept data
-    res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader('Access-Control-Allow-Methods', '*')
-    res.setHeader("Access-Control-Allow-Headers", "*")
+// CORS policy required to have browser accept data
+app.use(cors());
 
+app.get('/api/view-events', (req, res) => {
     let apiURL = `http://localhost:8080/api/view-events`
     axios.get(apiURL).then(function (response){
         res.status(response.status).send(response.data)
@@ -29,16 +28,14 @@ app.get('/api/view-events', (req, res) => {
 })
 
 app.post('/api/create-event', (req, res) => {
-    // CORS policy required to have browser accept data
-    res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader('Access-Control-Allow-Methods', '*')
-    res.setHeader("Access-Control-Allow-Headers", "*")
-
     let apiURL = `http://localhost:8080/api/create-event`
 
     axios.post(apiURL, req.body).then(function (response){
         res.status(response.status).send(response.data)
+        console.log("no error")
+        console.log(response.data)
     }).catch(function (error){
+        console.log("error!")
         console.log(error)
         res.status(error.response.status).send({
             error: {
@@ -50,11 +47,6 @@ app.post('/api/create-event', (req, res) => {
 })
 
 app.get('/api/view-participants', (req, res) => {
-    // CORS policy required to have browser accept data
-    res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader('Access-Control-Allow-Methods', '*')
-    res.setHeader("Access-Control-Allow-Headers", "*")
-
     let apiURL = `http://localhost:8080/api/view-participants`
 
     axios.get(apiURL, req.body).then(function (response){
@@ -71,11 +63,6 @@ app.get('/api/view-participants', (req, res) => {
 })
 
 app.post('/api/create-participant', (req, res) => {
-    // CORS policy required to have browser accept data
-    res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader('Access-Control-Allow-Methods', '*')
-    res.setHeader("Access-Control-Allow-Headers", "*")
-
     let apiURL = `http://localhost:8080/api/view-participants`
 
     axios.post(apiURL, req.body).then(function (response){
@@ -92,11 +79,6 @@ app.post('/api/create-participant', (req, res) => {
 })
 
 app.put('/api/register-participant', (req, res) => {
-    // CORS policy required to have browser accept data
-    res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader('Access-Control-Allow-Methods', '*')
-    res.setHeader("Access-Control-Allow-Headers", "*")
-
     let participantId = req.query.participantId
     let eventId = req.query.eventId
 
