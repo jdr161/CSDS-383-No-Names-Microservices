@@ -66,7 +66,7 @@ class CreateEventForm extends Component {
             if (data.id == '') {
                 data.id = uuidv4()
             }
-            let apiURL = '/api/create-event'
+            let apiURL = `http://localhost:3001/api/create-event`
             axios.post(apiURL, data)
                 .then(response => {
                     this.resetState()

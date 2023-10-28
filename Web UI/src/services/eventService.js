@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const getAllEvents = async () => {
-    const response = await axios.get("/api/view-events")
+    const response = await axios.get(`http://localhost:3001/api/view-events`)
     return response.data
 }
 

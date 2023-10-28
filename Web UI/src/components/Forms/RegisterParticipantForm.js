@@ -36,7 +36,7 @@ class RegisterParticipantForm extends Component {
         const submitDisabled = Boolean(isEventError | isParticipantError)
 
         const handleSubmit = () => {
-            let apiURL = `/api/register-participant?participantId=${participantInput}&eventId=${eventInput}`
+            let apiURL = `http://localhost:3001/api/register-participant?participantId=${participantInput}&eventId=${eventInput}`
             axios.put(apiURL)
               .then(response => {
                 this.resetState()
