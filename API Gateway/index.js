@@ -1,57 +1,94 @@
 const { default: axios } = require('axios');
 const express = require('express')
-const proxy = require('express-http-proxy');
 
 const app = express()
-const port = 3000;
+const port = 3001;
 
 
-app.use('/test', proxy('http://google.com'))
-app.use('/api/view-events', proxy('/api/view-events'))
-app.use('/api/create-event', proxy('http://localhost:8080/api/create-event'))
-app.use('/api/view-participants', proxy('http://localhost:8080/api/view-participants'))
-app.use('/api/create-participant', proxy('http://localhost:8080/api/create-participant'))
-app.use('/api/register-participant', proxy('http://localhost:8080/api/register-participant'))
+// we are only sending json requests
+app.use(express.json())
 
+app.get('/api/view-events', (req, res) => {
+    let apiURL = `http://localhost:8080/api/view-events`
+    axios.get(apiURL).then(function (response){
+        res.status(response.status).send(response.data)
+    }).catch(function (error){
+        console.log(error)
+        res.status(error.response.status).send({
+            error: {
+                response: {
+                    data: error.response.data
+                }
+            }})
+    })
+})
 
-// // we are only sending json requests
-// app.use(express.json())
+app.post('/api/create-event', (req, res) => {
+    let apiURL = `http://localhost:8080/api/create-event`
 
-// app.get('/api/view-events', (req, res) => {
-//     res.send("yep")
-// })
+    axios.post(apiURL, req.body).then(function (response){
+        res.status(response.status).send(response.data)
+    }).catch(function (error){
+        console.log(error)
+        res.status(error.response.status).send({
+            error: {
+                response: {
+                    data: error.response.data
+                }
+            }})
+    })
+})
 
-// app.post('/api/create-event', (req, res) => {})
+app.get('/api/view-participants', (req, res) => {
+    let apiURL = `http://localhost:8080/api/view-participants`
 
-// app.get('/api/view-participants', (req, res) => {})
+    axios.get(apiURL, req.body).then(function (response){
+        res.status(response.status).send(response.data)
+    }).catch(function (error){
+        console.log(error)
+        res.status(error.response.status).send({
+            error: {
+                response: {
+                    data: error.response.data
+                }
+            }})
+    })
+})
 
-// app.post('/api/create-participant', (req, res) => {})
+app.post('/api/create-participant', (req, res) => {
+    let apiURL = `http://localhost:8080/api/view-participants`
 
-// app.put('/api/register-participant', (req, res) => {
-//     let participantId = req.query.participantId
-//     let eventId = req.query.eventId
-    
-//     // check if either of the parameters is missing
-//     let errorMessage = ""
-//     if(participantId == ""){
-//         errorMessage += "participantId is a required query parameter."
-//     }
-//     if(eventId == ""){
-//         errorMessage += "eventId is a required query parameter."
-//     }
-//     if(errorMessage != ""){
-//         return res.status(400).send(errorMessage)
-//     } else {
-//         // if we have both parameters
-//         let apiURL = `http://localhost:8080/api/register-participant?participantId=${participantId}&eventId=${eventId}`
-//         try {
-//             response = axios.put(apiURL)
-//             return res.send(response)
-//         } catch (error) {
-//             return res.send(error.data)
-//         }
-//     }
-// })
+    axios.post(apiURL, req.body).then(function (response){
+        res.status(response.status).send(response.data)
+    }).catch(function (error){
+        console.log(error)
+        res.status(error.response.status).send({
+            error: {
+                response: {
+                    data: error.response.data
+                }
+            }})
+    })
+})
+
+app.put('/api/register-participant', (req, res) => {
+    let participantId = req.query.participantId
+    let eventId = req.query.eventId
+
+    let apiURL = `http://localhost:8080/api/register-participant?participantId=${participantId}&eventId=${eventId}`
+
+    axios.put(apiURL).then(function (response){
+        res.status(response.status).send(response.data)
+    }).catch(function (error){
+        console.log(error)
+        res.status(error.response.status).send({
+            error: {
+                response: {
+                    data: error.response.data
+                }
+            }})
+    })
+})
 
 
 
