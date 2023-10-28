@@ -32,10 +32,7 @@ app.post('/api/create-event', (req, res) => {
 
     axios.post(apiURL, req.body).then(function (response){
         res.status(response.status).send(response.data)
-        console.log("no error")
-        console.log(response.data)
     }).catch(function (error){
-        console.log("error!")
         console.log(error)
         res.status(error.response.status).send({
             error: {
