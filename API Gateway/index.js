@@ -18,12 +18,7 @@ app.get('/api/view-events', (req, res) => {
         res.status(response.status).send(response.data)
     }).catch(function (error){
         console.log(error)
-        res.status(error.response.status).send({
-            error: {
-                response: {
-                    data: error.response.data
-                }
-            }})
+        res.status(error.response.status).send(error.response.data)
     })
 })
 
@@ -34,12 +29,7 @@ app.post('/api/create-event', (req, res) => {
         res.status(response.status).send(response.data)
     }).catch(function (error){
         console.log(error)
-        res.status(error.response.status).send({
-            error: {
-                response: {
-                    data: error.response.data
-                }
-            }})
+        res.status(error.response.status).send(error.response.data)
     })
 })
 
@@ -50,12 +40,7 @@ app.get('/api/view-participants', (req, res) => {
         res.status(response.status).send(response.data)
     }).catch(function (error){
         console.log(error)
-        res.status(error.response.status).send({
-            error: {
-                response: {
-                    data: error.response.data
-                }
-            }})
+        res.status(error.response.status).send(error.response.data)
     })
 })
 
@@ -66,12 +51,7 @@ app.post('/api/create-participant', (req, res) => {
         res.status(response.status).send(response.data)
     }).catch(function (error){
         console.log(error)
-        res.status(error.response.status).send({
-            error: {
-                response: {
-                    data: error.response.data
-                }
-            }})
+        res.status(error.response.status).send(error.response.data)
     })
 })
 
@@ -85,12 +65,7 @@ app.put('/api/register-participant', (req, res) => {
         res.status(response.status).send(response.data)
     }).catch(function (error){
         console.log(error)
-        res.status(error.response.status).send({
-            error: {
-                response: {
-                    data: error.response.data
-                }
-            }})
+        res.status(error.response.status).send(error.response.data)
     })
 })
 
