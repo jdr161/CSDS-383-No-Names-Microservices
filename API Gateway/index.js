@@ -60,7 +60,7 @@ app.get('/api/view-participants', (req, res) => {
 })
 
 app.post('/api/create-participant', (req, res) => {
-    let apiURL = `http://localhost:8080/api/view-participants`
+    let apiURL = `http://localhost:8080/api/create-participant`
 
     axios.post(apiURL, req.body).then(function (response){
         res.status(response.status).send(response.data)
