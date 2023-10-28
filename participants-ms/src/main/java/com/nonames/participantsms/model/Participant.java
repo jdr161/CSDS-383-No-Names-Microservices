@@ -1,4 +1,4 @@
-package com.nonames.layered.models;
+package com.nonames.participantsms.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -18,9 +18,9 @@ public class Participant {
     @Column(name = "email")
     private String email;
 
-    @JsonIgnore
-    @ManyToMany(mappedBy = "participants")
-    Set<Event> events;
+//    @JsonIgnore
+//    @ManyToMany(mappedBy = "participants")
+//    Set<Event> events;
 
     public Participant() {
 
@@ -50,11 +50,11 @@ public class Participant {
         this.email = email;
     }
 
-    public Set<Event> getEvents() {
-        return events;
-    }
-
-    public void setEvents(Set<Event> events) {
-        this.events = events;
-    }
+//    public Set<Event> getEvents() {
+//        return events;
+//    }
+//
+//    public void setEvents(Set<Event> events) {
+//        this.events = events;
+//    }
 }
