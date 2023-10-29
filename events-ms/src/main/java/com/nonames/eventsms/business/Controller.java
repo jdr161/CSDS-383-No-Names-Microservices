@@ -5,6 +5,7 @@ import com.nonames.eventsms.models.Participant;
 import com.nonames.eventsms.persistence.EventRepository;
 import com.nonames.eventsms.persistence.ParticipantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -30,6 +31,9 @@ public class Controller {
 
     @Autowired
     ParticipantRepository participantRepository;
+
+    @Value("${participant-api-url}")
+    String participantApiUrl;
 
     @GetMapping("/view-events-and-participants")
     public ResponseEntity<List<Event>> getAllEvents() {
@@ -63,9 +67,6 @@ public class Controller {
         event.get().getParticipants().add(participant.get());
         eventRepository.save(event.get());
 
-        participant.get().getEvents().add(event.get());
-        participantRepository.save(participant.get());
-
         return ResponseEntity.ok(event.get());
     }
 
@@ -77,17 +78,7 @@ public class Controller {
 
     private Participant fetchParticipantData(UUID participantId){
         RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders header= new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        header.add("Accept", "application/json");
-
-        MultiValueMap<String, String> body= new LinkedMultiValueMap<String, String>();
-        HttpEntity<MultiValueMap<String, String>> requeteHttp =new HttpEntity<MultiValueMap<String, String>>(body, header);
-
-        // TODO CONFIG & GET PARAM
-        ResponseEntity<Participant> reponse = restTemplate.postForEntity("http://localhost:8081/get-participant-by-id?id=" + participantId.toString(), requeteHttp , Participant.class);
-
-        return reponse.getBody();
+        ResponseEntity<Participant> response = restTemplate.getForEntity(participantApiUrl + "/get-participant-by-id?id=" + participantId.toString(), Participant.class);
+        return response.getBody();
     }
 }
