@@ -51,7 +51,7 @@ class CreateParticipantForm extends Component {
             if(data.id == ''){
                 data.id = uuidv4()
             }
-            let apiURL = '/api/create-participant'
+            let apiURL = `http://localhost:3001/api/create-participant`
             axios.post(apiURL, data)
               .then(response => {
                 this.resetState()
