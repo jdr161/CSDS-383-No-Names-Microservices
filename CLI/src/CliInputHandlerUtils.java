@@ -18,7 +18,7 @@ public class CliInputHandlerUtils {
             try {
                 System.out.print(promptMessage);
                 String uuidInput = scanner.nextLine();
-                if (isCancelRequest(uuidInput)) {
+                if (MainCLI.isCancelRequest(uuidInput)) {
                     return CLICode.MAIN_MENU;
                 }
                 if (uuidInput != null && !uuidInput.isBlank()) {

@@ -5,7 +5,7 @@ public enum CLICode {
 
     private final int code;
 
-    CliCode(int code) {
+    CLICode(int code) {
         this.code = code;
     }
 
