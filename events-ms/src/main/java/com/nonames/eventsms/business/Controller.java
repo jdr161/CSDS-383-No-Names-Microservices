@@ -35,7 +35,7 @@ public class Controller {
     @Value("${participant-api-url}")
     String participantApiUrl;
 
-    @GetMapping("/view-events-and-participants")
+    @GetMapping("/view-events")
     public ResponseEntity<List<Event>> getAllEvents() {
         List<Event> events = eventRepository.findAll();
         return ResponseEntity.ok(events);
