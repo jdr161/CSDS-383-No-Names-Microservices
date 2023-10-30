@@ -1,3 +1,5 @@
+package com.nonames.cli;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -5,6 +7,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.*;
+
+import org.json.JSONArray;
+
+import com.nonames.cli.utils.PrintUtils;
 
 public class MainCLI {
     private static final Scanner scanner = new Scanner(System.in);
@@ -111,7 +117,10 @@ public class MainCLI {
                 in.close();
 
                 String responseBody = response.toString();
-                System.out.println(responseBody);
+                JSONArray json = new JSONArray(responseBody);
+                String[][] table = PrintUtils.convertGetEventsResponseToTable(json);
+                PrintUtils.prettyPrintTable(table);
+
                 System.out.println("[*] Retrieved all events");
             } else {
                 System.out.println("Failed to fetch requested data");
@@ -227,7 +236,10 @@ public class MainCLI {
                 in.close();
 
                 String responseBody = response.toString();
-                System.out.println(responseBody);
+                JSONArray json = new JSONArray(responseBody);
+                String[][] table = PrintUtils.convertGetParticipantsResponseToTable(json);
+                PrintUtils.prettyPrintTable(table);
+
                 System.out.println("[*] Retrieved all participants");
             } else {
                 System.out.println("Failed to fetch requested data");

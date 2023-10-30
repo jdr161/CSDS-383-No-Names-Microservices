@@ -1,4 +1,6 @@
-import utils.FormatUtils;
+package com.nonames.cli;
+
+import com.nonames.cli.utils.FormatUtils;
 
 import java.text.Normalizer;
 import java.text.ParseException;
