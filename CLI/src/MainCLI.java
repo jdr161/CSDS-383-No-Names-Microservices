@@ -1,5 +1,8 @@
-import utils.PrintUtils;
-
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -84,40 +87,40 @@ public class MainCLI {
     }
 
     //Option 1: View all events
+    // DONE
     private static CLICode handleViewAllEventsRequest() {
-        Hashtable<UUID, EventAndParticipants> eventsAndParticipantsTable = EventAndParticipantsDao.getAllEventsAndParticipants();
-        Collection<EventAndParticipants> values = eventsAndParticipantsTable.values();
-
-        if (eventsAndParticipantsTable.size() == 0) {
-            System.out.println("No available events. Returning to main menu");
-            System.out.println("--------------");
-        } else {
+        try {
             System.out.println("-----------------------");
             System.out.println("Events and Participants");
-            List<List<String>> data = new ArrayList<>();
-            data.add(Arrays.asList("ID", "Date", "Time", "Title", "Description", "Host Email", "Participants"));
-            for (EventAndParticipants eventAndParticipants : values) {
-                Event e = eventAndParticipants.getEvent();
-                List<String> currentRow = new ArrayList<>(Arrays.asList(e.getId().toString(), e.getDate(), e.getTime(), e.getTitle(), e.getDescription(), e.getHostEmail()));
-                if (eventAndParticipants.getParticipantList().isEmpty()) {
-                    currentRow.add("None");
-                } else {
-                    StringBuilder participantListAggregateInfo = new StringBuilder();
-                    for (Participant p : eventAndParticipants.getParticipantList()) {
-                        String participantInfo = String.format("| Id: %s, Name: %s, Email: %s |",
-                                p.getParticipantId().toString(), p.getParticipantName(), p.getParticipantEmail());
-                        participantListAggregateInfo.append(participantInfo);
-                    }
-                    currentRow.add(participantListAggregateInfo.toString());
-                }
-                data.add(currentRow);
-            }
+            String apiEndpoint = "http://localhost:3001/api/view-events";
 
-            String[][] table = data.stream()
-                    .map(l -> l.toArray(String[]::new))
-                    .toArray(String[][]::new);
-            PrintUtils.prettyPrintTable(table);
-            System.out.println("[*] Retrieved all events");
+            URL url = new URI(apiEndpoint).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            int responseCode = connection.getResponseCode();
+
+            if(responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                String responseBody = response.toString();
+                System.out.println(responseBody);
+                System.out.println("[*] Retrieved all events");
+            } else {
+                System.out.println("Failed to fetch requested data");
+            }
+        } catch (IOException e) {
+            System.out.println("No available events. Returning to main menu");
+            System.out.println("--------------");
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
 
         return CLICode.MAIN_MENU;
@@ -125,83 +128,182 @@ public class MainCLI {
 
     // Option 2: handles the creation of a new event as well as the validation of the input
     private static CLICode handleCreateEventRequest() throws SQLException {
-        Event event = Event.builder().build();
+        try {
+            System.out.println("--- New event ---");
+            System.out.println("[*] Press 'C' or 'c' and then ENTER at any input prompt to cancel");
+            String apiEndpoint = "http://localhost:3001/api/create-event";
 
-        System.out.println("--- New event ---");
-        System.out.println("[*] Press 'C' or 'c' and then ENTER at any input prompt to cancel");
+            URL url = new URI(apiEndpoint).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        CLICode result = CliInputHandlerUtils.handleUuidCreationInput("Set a UUID for the event, or press ENTER for an auto-generated one: ", event);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
 
-        result = CliInputHandlerUtils.handleEventDateInput(event);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            /* Get data from user: */
+            // -------------------------------------------------------
+            String[] results = new String[6];
+            String result = CliInputHandlerUtils.handleUuidCreationInput("Set a UUID for the event, or press ENTER for an auto-generated one: ");
+            if (result == null) return CLICode.MAIN_MENU;
+            results[0] = result;
 
-        result = CliInputHandlerUtils.handleEventTimeInput(event);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            result = CliInputHandlerUtils.handleEventDateInput();
+            if (result == null) return CLICode.MAIN_MENU;
+            results[1] = result;
 
-        result = CliInputHandlerUtils.handleEventTitleInput(event);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            result = CliInputHandlerUtils.handleEventTimeInput();
+            if (result == null) return CLICode.MAIN_MENU;
+            results[2] = result;
 
-        result = CliInputHandlerUtils.handleEventDescriptionInput(event);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            result = CliInputHandlerUtils.handleEventTitleInput();
+            if (result == null) return CLICode.MAIN_MENU;
+            results[3] = result;
 
-        result = CliInputHandlerUtils.handleEmailInput("Enter the email of the event host: ", event);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            result = CliInputHandlerUtils.handleEventDescriptionInput();
+            if (result == null) return CLICode.MAIN_MENU;
+            results[4] = result;
 
-        EventDao.addEvent(event);
-        System.out.println("[*] Successfully added event. Returning to main menu");
+            result = CliInputHandlerUtils.handleEmailInput("Enter the email of the event host: ");
+            if (result == null) return CLICode.MAIN_MENU;
+            results[5] = result;
+            // -------------------------------------------------------
+
+            // JSON data for the request body
+            String eventData = "{ " +
+                    "\"eventData\": {" +
+                    "\"id\": \"" + results[0] + "\", " +
+                    "\"date\": \"" + results[1] + "\", " +
+                    "\"time\": \"" + results[2] + "\", " +
+                    "\"title\": \"" + results[3] + "\", " +
+                    "\"description\": \"" + results[4] + "\", " +
+                    "\"hostEmail\": \"" + results[5] + "\"" +
+                    "}" +
+                    "}";
+
+            // Write the JSON data to the request body
+            try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+                wr.writeBytes(eventData);
+            }
+
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("Successfully created an event.");
+            } else {
+                System.out.println("Failed to create an event");
+            }
+            System.out.println("[*] Successfully added event. Returning to main menu");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
         return CLICode.MAIN_MENU;
     }
 
     // Option 4: handles viewing all participants
+    // DONE
     private static CLICode handleViewAllParticipantsRequest() {
-        List<Participant> participants = ParticipantDao.getAllParticipants();
-
-        if (participants == null || participants.isEmpty()) {
-            System.out.println("No participants. Returning to main menu");
-            System.out.println("--------------");
-        } else {
-            System.out.println("------------");
+        try {
+            System.out.println("-----------------------");
             System.out.println("Participants");
-            List<List<String>> data = new ArrayList<>();
-            data.add(Arrays.asList("ID", "Name", "Email"));
-            for (Participant p : participants) {
-                List<String> currentRow = new ArrayList<>(Arrays.asList(p.getParticipantId().toString(), p.getParticipantName(), p.getParticipantEmail()));
-                data.add(currentRow);
-            }
+            String apiEndpoint = "http://localhost:3001/api/view-participants";
 
-            String[][] table = data.stream()
-                    .map(l -> l.toArray(String[]::new))
-                    .toArray(String[][]::new);
-            PrintUtils.prettyPrintTable(table);
-            System.out.println("[*] Retrieved all participants");
+            URL url = new URI(apiEndpoint).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            int responseCode = connection.getResponseCode();
+
+            if(responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                String responseBody = response.toString();
+                System.out.println(responseBody);
+                System.out.println("[*] Retrieved all participants");
+            } else {
+                System.out.println("Failed to fetch requested data");
+            }
+        } catch (IOException e) {
+            System.out.println("No available participants. Returning to main menu");
+            System.out.println("--------------");
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
+
         return CLICode.MAIN_MENU;
     }
 
     // Option 3: Create participants
     private static CLICode handleCreateParticipantRequest() throws SQLException {
-        Participant participant = Participant.builder().build();
+        try {
+            System.out.println("--- New participant ---");
+            System.out.println("[*] Press 'C' or 'c' and then ENTER at any input prompt to cancel");
+            String apiEndpoint = "http://localhost:3001/api/create-participant";
 
-        System.out.println("--- New participant ---");
-        System.out.println("[*] Press 'C' or 'c' and then ENTER at any input prompt to cancel");
+            URL url = new URI(apiEndpoint).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        CLICode result = CliInputHandlerUtils.handleUuidCreationInput("Set a UUID for the participant, or press ENTER for an auto-generated one: ", participant);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
 
-        result = CliInputHandlerUtils.handleParticipantNameInput(participant);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            /* Get data from user: */
+            // -------------------------------------------------------
+            String[] results = new String[3];
+            String result = CliInputHandlerUtils.handleUuidCreationInput("Set a UUID for the participant, or press ENTER for an auto-generated one: ");
+            if (result == null) return CLICode.MAIN_MENU;
+            results[0] = result;
 
-        result = CliInputHandlerUtils.handleEmailInput("Enter email of participant: ", participant);
-        if (result != CLICode.CONTINUE) return CLICode.MAIN_MENU;
+            result = CliInputHandlerUtils.handleParticipantNameInput();
+            if (result == null) return CLICode.MAIN_MENU;
+            results[1] = result;
 
-        ParticipantDao.addParticipant(participant);
-        System.out.println("[*] Successfully added participant. Returning to main menu");
+            result = CliInputHandlerUtils.handleEmailInput("Enter email of participant: ");
+            if (result == null) return CLICode.MAIN_MENU;
+            results[2] = result;
+            // -------------------------------------------------------
+
+            // JSON data for the request body
+            String participantData = "{ " +
+                    "\"eventData\": {" +
+                    "\"id\": \"" + results[0] + "\", " +
+                    "\"participantName\": \"" + results[1] + "\", " +
+                    "\"participantEmail\": \"" + results[2] + "\", " +
+                    "}" +
+                    "}";
+
+            // Write the JSON data to the request body
+            try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+                wr.writeBytes(participantData);
+            }
+
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("Successfully created an event.");
+            } else {
+                System.out.println("Failed to create an event");
+            }
+            System.out.println("[*] Successfully added event. Returning to main menu");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
         return CLICode.MAIN_MENU;
     }
 
     // Option 5: handles the registration of participants
-    // TODO refactor, ugly validation
     private static CLICode handleRegisterParticipantRequest() {
         boolean validInput = false;
 
@@ -221,9 +323,7 @@ public class MainCLI {
                     continue;
                 }
 
-                UUID.fromString(participantUuidInput);
-
-                if (!ParticipantDao.doesParticipantExist(participantUuidInput)) {
+                if (!isParticipantPresent(participantUuidInput)) {
                     System.out.println("Participant UUID doesn't exist. Try again");
                     continue;
                 }
@@ -251,7 +351,7 @@ public class MainCLI {
 
                 UUID.fromString(eventUuidInput);
 
-                if (!EventDao.doesEventExist(eventUuidInput)) {
+                if (!isEventPresent(eventUuidInput)) {
                     System.out.println("Event UUID doesn't exist.");
                     continue;
                 }
@@ -263,13 +363,84 @@ public class MainCLI {
         }
 
         try {
-            ParticipantDao.addParticipantInEvent(participantUuidInput, eventUuidInput);
-        } catch (SQLException e) { // should be unexpected at this point.
+            HttpURLConnection connection = connectToApi("http://localhost:3001/api/register-participants", "GET");
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         System.out.println("[*] Successfully registered participant to event. Returning to main menu");
         return CLICode.MAIN_MENU;
+    }
+
+    // Check if the participant exists
+    private static boolean isParticipantPresent(String participantId) {
+        try {
+            HttpURLConnection connection = connectToApi("http://localhost:3001/api/view-participants", "GET");
+
+            assert connection != null;
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                String responseBody = response.toString();
+                System.out.println(responseBody);
+            }
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Check if the event exists
+    private static boolean isEventPresent(String eventId) {
+        try {
+            HttpURLConnection connection = connectToApi("http://localhost:3001/api/view-events", "GET");
+
+            assert connection != null;
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                String responseBody = response.toString();
+                System.out.println(responseBody);
+            }
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Helper method to make HTTP connections
+    private static HttpURLConnection connectToApi(String endpoint, String requestMethod) throws IOException {
+        try {
+            URL url = new URI(endpoint).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(requestMethod);
+            return connection;
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
