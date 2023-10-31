@@ -39,4 +39,14 @@ The goal of this project was to develop an application using a microservices arc
 - The CLI  should be able to be executed in a Unix-based or Windows environment.
 
 ## How to run the project
-- TODO
+Make sure you have the relevant version of Node and Java Development Kit installed (see [Versions Section](#versions))
+1. Web User Interface: run the following commands in order at the root of the ```./cli``` directory:
+    - ```npm install```
+    - ```npm run start```
+2. Command Line Interface: build the ```./cli``` project with Maven and run the ```Main.java``` file, or run the jar file via ```java -jar cli.jar```
+3. API Gateway: run the following commands in order at the root of the ```./API Gateway``` directory:
+    - ```npm install```
+    - ```node index.js```
+4. Events Microservice: build the ```./events-ms``` project with Maven and run the ```EventsMsApplication.java``` file or run the jar file via ```java -jar events-ms.jar```
+5. Participants Microservice: build the ```./participants-ms``` project with Maven and run the ```ParticipantsMsApplication.java``` file or run the jar file via ```java -jar participants-ms.jar```
+6. Navigate to ```http://localhost:3000``` or use the command line interface
