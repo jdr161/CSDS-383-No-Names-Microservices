@@ -54,16 +54,15 @@ public class Controller {
     @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/register-participant")
     public ResponseEntity<Event> registerParticipant(@RequestParam UUID participantId, @RequestParam UUID eventId) {
-        fetchAndSaveParticipant(participantId);
-
         Optional<Event> event = eventRepository.findById(eventId);
         Optional<Participant> participant = participantRepository.findById(participantId);
-
+        
         if (event.isEmpty())
             throw new ResponseStatusException(NOT_FOUND, "Event UUID not found");
         if (participant.isEmpty())
             throw new ResponseStatusException(NOT_FOUND, "Participant UUID not found");
-
+        
+        fetchAndSaveParticipant(participantId);
         event.get().getParticipants().add(participant.get());
         eventRepository.save(event.get());
 

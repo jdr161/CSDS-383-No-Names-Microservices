@@ -1,10 +1,18 @@
+package com.nonames.cli;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.*;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.nonames.cli.utils.PrintUtils;
 
 public class MainCLI {
     private static final Scanner scanner = new Scanner(System.in);
@@ -27,7 +35,7 @@ public class MainCLI {
 
     public static CLICode mainMenu() {
         try {
-            String[] options = {"\n --- MainCLI Menu ---",
+            String[] options = { "\n --- MainCLI Menu ---",
                     "[1] View All Events",
                     "[2] Create an Event",
                     "[3] Create Participants",
@@ -86,7 +94,7 @@ public class MainCLI {
         }
     }
 
-    //Option 1: View all events
+    // Option 1: View all events
     // DONE
     private static CLICode handleViewAllEventsRequest() {
         try {
@@ -100,7 +108,7 @@ public class MainCLI {
 
             int responseCode = connection.getResponseCode();
 
-            if(responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String inputLine;
                 StringBuilder response = new StringBuilder();
@@ -111,7 +119,10 @@ public class MainCLI {
                 in.close();
 
                 String responseBody = response.toString();
-                System.out.println(responseBody);
+                JSONArray json = new JSONArray(responseBody);
+                String[][] table = PrintUtils.convertGetEventsResponseToTable(json);
+                PrintUtils.prettyPrintTable(table);
+
                 System.out.println("[*] Retrieved all events");
             } else {
                 System.out.println("Failed to fetch requested data");
@@ -126,7 +137,8 @@ public class MainCLI {
         return CLICode.MAIN_MENU;
     }
 
-    // Option 2: handles the creation of a new event as well as the validation of the input
+    // Option 2: handles the creation of a new event as well as the validation of
+    // the input
     private static CLICode handleCreateEventRequest() throws SQLException {
         try {
             System.out.println("--- New event ---");
@@ -143,28 +155,35 @@ public class MainCLI {
             /* Get data from user: */
             // -------------------------------------------------------
             String[] results = new String[6];
-            String result = CliInputHandlerUtils.handleUuidCreationInput("Set a UUID for the event, or press ENTER for an auto-generated one: ");
-            if (result == null) return CLICode.MAIN_MENU;
+            String result = CliInputHandlerUtils
+                    .handleUuidCreationInput("Set a UUID for the event, or press ENTER for an auto-generated one: ");
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[0] = result;
 
             result = CliInputHandlerUtils.handleEventDateInput();
-            if (result == null) return CLICode.MAIN_MENU;
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[1] = result;
 
             result = CliInputHandlerUtils.handleEventTimeInput();
-            if (result == null) return CLICode.MAIN_MENU;
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[2] = result;
 
             result = CliInputHandlerUtils.handleEventTitleInput();
-            if (result == null) return CLICode.MAIN_MENU;
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[3] = result;
 
             result = CliInputHandlerUtils.handleEventDescriptionInput();
-            if (result == null) return CLICode.MAIN_MENU;
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[4] = result;
 
             result = CliInputHandlerUtils.handleEmailInput("Enter the email of the event host: ");
-            if (result == null) return CLICode.MAIN_MENU;
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[5] = result;
             // -------------------------------------------------------
 
@@ -216,7 +235,7 @@ public class MainCLI {
 
             int responseCode = connection.getResponseCode();
 
-            if(responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String inputLine;
                 StringBuilder response = new StringBuilder();
@@ -227,7 +246,10 @@ public class MainCLI {
                 in.close();
 
                 String responseBody = response.toString();
-                System.out.println(responseBody);
+                JSONArray json = new JSONArray(responseBody);
+                String[][] table = PrintUtils.convertGetParticipantsResponseToTable(json);
+                PrintUtils.prettyPrintTable(table);
+
                 System.out.println("[*] Retrieved all participants");
             } else {
                 System.out.println("Failed to fetch requested data");
@@ -259,16 +281,20 @@ public class MainCLI {
             /* Get data from user: */
             // -------------------------------------------------------
             String[] results = new String[3];
-            String result = CliInputHandlerUtils.handleUuidCreationInput("Set a UUID for the participant, or press ENTER for an auto-generated one: ");
-            if (result == null) return CLICode.MAIN_MENU;
+            String result = CliInputHandlerUtils.handleUuidCreationInput(
+                    "Set a UUID for the participant, or press ENTER for an auto-generated one: ");
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[0] = result;
 
             result = CliInputHandlerUtils.handleParticipantNameInput();
-            if (result == null) return CLICode.MAIN_MENU;
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[1] = result;
 
             result = CliInputHandlerUtils.handleEmailInput("Enter email of participant: ");
-            if (result == null) return CLICode.MAIN_MENU;
+            if (result == null)
+                return CLICode.MAIN_MENU;
             results[2] = result;
             // -------------------------------------------------------
 
@@ -363,7 +389,27 @@ public class MainCLI {
         }
 
         try {
-            HttpURLConnection connection = connectToApi("http://localhost:3001/api/register-participants", "GET");
+            String endpoint = "http://localhost:3001/api/register-participant?participantId="
+                    + URLEncoder.encode(participantUuidInput, "UTF-8")
+                    + "&eventId=" + URLEncoder.encode(eventUuidInput, "UTF-8");
+            HttpURLConnection connection = connectToApi(endpoint, "PUT");
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                String responseBody = response.toString();
+                JSONObject error = new JSONObject(responseBody);
+                throw new RuntimeException(error.getString("message"));
+            }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -391,7 +437,7 @@ public class MainCLI {
                 in.close();
 
                 String responseBody = response.toString();
-                System.out.println(responseBody);
+                // System.out.println(responseBody);
             }
 
             return true;
@@ -420,7 +466,7 @@ public class MainCLI {
                 in.close();
 
                 String responseBody = response.toString();
-                System.out.println(responseBody);
+                // System.out.println(responseBody);
             }
 
             return true;

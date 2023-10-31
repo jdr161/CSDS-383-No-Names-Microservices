@@ -1,3 +1,5 @@
+package com.nonames.cli;
+
 public enum CLICode {
     MAIN_MENU(0),
     NO_ERROR_NO_REPEAT_OP(1),

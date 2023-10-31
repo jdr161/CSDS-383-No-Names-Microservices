@@ -1,3 +1,5 @@
+package com.nonames.cli;
+
 public class Main {
     public static void main(String[] args) {
         //conn = connect();

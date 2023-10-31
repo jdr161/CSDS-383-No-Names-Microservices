@@ -79,7 +79,8 @@ app.put('/api/register-participant', (req, res) => {
 
     let apiURL = `http://localhost:${eventsMSPort}/api/register-participant?participantId=${participantId}&eventId=${eventId}`
 
-    axios.put(apiURL).then(function (response){
+    // putting trivial body in PUT request since it seems like the request is rejected for empty body
+    axios.put(apiURL, {"empty": "body"}).then(function (response){
         res.status(response.status).send(response.data)
     }).catch(function (error){
         console.log(error)

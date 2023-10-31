@@ -1,12 +1,66 @@
-package utils;
+package com.nonames.cli.utils;
 
 import java.util.*;
 import java.util.stream.Stream;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class PrintUtils {
+
+    public static String[][] convertGetParticipantsResponseToTable(JSONArray jsonArray) {
+        List<List<String>> data = new ArrayList<>();
+        data.add(Arrays.asList("ID", "Name", "Email"));
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject participant = jsonArray.getJSONObject(i);
+            List<String> currentRow = new ArrayList<>(Arrays.asList(participant.getString("id"),
+                    participant.getString("name"), participant.getString("email")));
+            data.add(currentRow);
+        }
+        return data.stream()
+                    .map(l -> l.toArray(String[]::new))
+                    .toArray(String[][]::new);
+    }
+
+    public static String[][] convertGetEventsResponseToTable(JSONArray jsonArray) {
+        List<List<String>> data = new ArrayList<>();
+        data.add(Arrays.asList("ID", "Date", "Time", "Title", "Description", "Host Email", "Participants"));
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject event = jsonArray.getJSONObject(i);
+            List<String> currentRow = new ArrayList<>(
+                    Arrays.asList(event.getString("id"), event.getString("date"), event.getString("time"),
+                            event.getString("title"), event.getString("description"), event.getString("hostEmail")));
+
+            JSONArray participantsJSON = event.getJSONArray("participants");
+            if (participantsJSON.isEmpty()) {
+                currentRow.add("None");
+            } else {
+                StringBuilder participantListAggregateInfo = new StringBuilder();
+                for (int j = 0; j < participantsJSON.length(); j++) {
+                    JSONObject participant = participantsJSON.getJSONObject(j);
+
+                    String participantInfo = String.format("(%d) Id: %s, Name: %s, Email: %s ",
+                            j + 1, participant.getString("id"), participant.getString("name"),
+                            participant.getString("email"));
+                    participantListAggregateInfo.append(participantInfo);
+                }
+                currentRow.add(participantListAggregateInfo.toString());
+            }
+            data.add(currentRow);
+        }
+        return data.stream()
+                .map(l -> l.toArray(String[]::new))
+                .toArray(String[][]::new);
+    }
+
     /**
      * Pretty prints a table with the specified data
-     * ATTRIBUTION: <a href="https://itsallbinary.com/java-printing-to-console-in-table-format-simple-code-with-flexible-width-left-align-header-separator-line/">Code adapted from here</a>
+     * ATTRIBUTION: <a href=
+     * "https://itsallbinary.com/java-printing-to-console-in-table-format-simple-code-with-flexible-width-left-align-header-separator-line/">Code
+     * adapted from here</a>
+     * 
      * @param table
      */
     public static void prettyPrintTable(String[][] table) {
