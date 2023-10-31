@@ -2,9 +2,9 @@ package com.nonames.cli;
 
 import com.nonames.cli.utils.FormatUtils;
 
-import java.text.Normalizer;
 import java.text.ParseException;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class CliInputHandlerUtils {
     private static final Scanner scanner = new Scanner(System.in);
@@ -22,7 +22,10 @@ public class CliInputHandlerUtils {
                 if (MainCLI.isCancelRequest(uuidInput)) {
                     return null;
                 }
-                if (uuidInput != null && !uuidInput.isBlank()) {
+                if (uuidInput == null || uuidInput.isBlank()) {
+                    return UUID.randomUUID().toString();
+                } else {
+                    UUID.fromString(uuidInput);
                     return uuidInput;
                 }
             } catch (IllegalArgumentException e) {

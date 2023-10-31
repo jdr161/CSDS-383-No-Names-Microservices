@@ -6,12 +6,7 @@ import com.nonames.eventsms.persistence.EventRepository;
 import com.nonames.eventsms.persistence.ParticipantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -55,14 +50,15 @@ public class Controller {
     @PutMapping("/register-participant")
     public ResponseEntity<Event> registerParticipant(@RequestParam UUID participantId, @RequestParam UUID eventId) {
         Optional<Event> event = eventRepository.findById(eventId);
-        Optional<Participant> participant = participantRepository.findById(participantId);
         
         if (event.isEmpty())
             throw new ResponseStatusException(NOT_FOUND, "Event UUID not found");
-        if (participant.isEmpty())
+        if (fetchParticipantData(participantId) == null) {
             throw new ResponseStatusException(NOT_FOUND, "Participant UUID not found");
-        
+        }
+
         fetchAndSaveParticipant(participantId);
+        Optional<Participant> participant = participantRepository.findById(participantId);
         event.get().getParticipants().add(participant.get());
         eventRepository.save(event.get());
 

@@ -189,14 +189,12 @@ public class MainCLI {
 
             // JSON data for the request body
             String eventData = "{ " +
-                    "\"eventData\": {" +
                     "\"id\": \"" + results[0] + "\", " +
                     "\"date\": \"" + results[1] + "\", " +
                     "\"time\": \"" + results[2] + "\", " +
                     "\"title\": \"" + results[3] + "\", " +
                     "\"description\": \"" + results[4] + "\", " +
                     "\"hostEmail\": \"" + results[5] + "\"" +
-                    "}" +
                     "}";
 
             // Write the JSON data to the request body
@@ -211,7 +209,6 @@ public class MainCLI {
             } else {
                 System.out.println("Failed to create an event");
             }
-            System.out.println("[*] Successfully added event. Returning to main menu");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -300,11 +297,9 @@ public class MainCLI {
 
             // JSON data for the request body
             String participantData = "{ " +
-                    "\"eventData\": {" +
                     "\"id\": \"" + results[0] + "\", " +
-                    "\"participantName\": \"" + results[1] + "\", " +
-                    "\"participantEmail\": \"" + results[2] + "\", " +
-                    "}" +
+                    "\"name\": \"" + results[1] + "\", " +
+                    "\"email\": \"" + results[2] + "\"" +
                     "}";
 
             // Write the JSON data to the request body
@@ -315,11 +310,10 @@ public class MainCLI {
             int responseCode = connection.getResponseCode();
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                System.out.println("Successfully created an event.");
+                System.out.println("Successfully created a participant.");
             } else {
-                System.out.println("Failed to create an event");
+                System.out.println("Failed to create a participant");
             }
-            System.out.println("[*] Successfully added event. Returning to main menu");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -348,6 +342,8 @@ public class MainCLI {
                     System.out.println("Input must be a valid UUID. Try again");
                     continue;
                 }
+                
+                UUID.fromString(participantUuidInput);
 
                 if (!isParticipantPresent(participantUuidInput)) {
                     System.out.println("Participant UUID doesn't exist. Try again");
