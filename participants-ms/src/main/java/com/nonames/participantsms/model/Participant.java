@@ -1,9 +1,7 @@
 package com.nonames.participantsms.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -17,10 +15,6 @@ public class Participant {
 
     @Column(name = "email")
     private String email;
-
-//    @JsonIgnore
-//    @ManyToMany(mappedBy = "participants")
-//    Set<Event> events;
 
     public Participant() {
 
@@ -49,12 +43,4 @@ public class Participant {
     public void setEmail(String email) {
         this.email = email;
     }
-
-//    public Set<Event> getEvents() {
-//        return events;
-//    }
-//
-//    public void setEvents(Set<Event> events) {
-//        this.events = events;
-//    }
 }

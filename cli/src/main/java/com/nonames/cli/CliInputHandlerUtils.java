@@ -2,7 +2,6 @@ package com.nonames.cli;
 
 import com.nonames.cli.utils.FormatUtils;
 
-import java.text.Normalizer;
 import java.text.ParseException;
 import java.util.Scanner;
 import java.util.UUID;
